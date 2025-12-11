@@ -79,7 +79,7 @@ IFS="," read -r -a PORTS <<< "$QBT_PORTS"
 if [[ -n "$TRACKER_LIST" ]]; then
   echo "[INFO] No custom trackers list detected, using default"
   TRACKER_LIST=https://newtrackon.com/api/stable,https://trackerslist.com/best.txt,https://trackerslist.com/http.txt,https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt
-
+fi
 IFS=',' read -r -a TRACKERS <<< "$TRACKER_LIST"
 
 # Run on a loop
