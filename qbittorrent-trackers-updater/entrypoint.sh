@@ -20,7 +20,7 @@ update_config() {
   local username="$3"
   local password="$4"
   local auth_bypass="$5"
-  local tracker_list="$6"
+  local tracker_list=("$@")
 
   sed -i "s|^qbt_host=.*|qbt_host=\"$host\"|" /AddqBittorrentTrackers.sh
   sed -i "s|^qbt_port=.*|qbt_port=\"$port\"|" /AddqBittorrentTrackers.sh
@@ -32,13 +32,12 @@ update_config() {
     sed -i "s|^qbt_username=.*|qbt_username=\"$username\"|" /AddqBittorrentTrackers.sh
     sed -i "s|^qbt_password=.*|qbt_password=\"$password\"|" /AddqBittorrentTrackers.sh
   fi
-  sed -i '/^declare -a live_trackers_list_urls=($/,/^)/c\
-  declare -a live_trackers_list_urls=(tmp_placeholder)' /AddqBittorrentTrackers.sh
+  sed -i '/^declare -a live_trackers_list_urls=($/,/^[[:space:]]*)$/c\declare -a live_trackers_list_urls=(tmp_placeholder)' /AddqBittorrentTrackers.sh
 
   formatted_trackers=$(printf '"%s" ' "${tracker_list[@]}")
   formatted_trackers="${formatted_trackers% }"
 
-  sed -i "s|^declare -a live_trackers_list_urls=(.*)|declare -a live_trackers_list_urls=(${formatted_trackers})|" /AddqBittorrentTrackers.sh
+  sed -i "s|^declare -a live_trackers_list_urls=(tmp_placeholder)|declare -a live_trackers_list_urls=(${formatted_trackers})|" /AddqBittorrentTrackers.sh
 }
 
 # Function to update qBittorrent default setting for new downloads
@@ -102,9 +101,13 @@ while true; do
     COMPLETE_TRACKER_LIST+=$(curl -s "$element")
   done
 
+  COMPLETE_TRACKER_LIST=$(echo -e "$COMPLETE_TRACKER_LIST" | sort -u)
+  echo "$COMPLETE_TRACKER_LIST" > /trackers_list.txt
+  export TRACKER_LIST_FILE="/trackers_list.txt"
+
   for i in "${!HOSTS[@]}"; do
     echo "[INFO] Updating host ${HOSTS[$i]}:${PORTS[$i]}"
-    if ! update_config "${HOSTS[$i]}" "${PORTS[$i]}" "$QBT_USERNAME" "$QBT_PASSWORD" "$QBT_AUTH_BYPASS" "$TRACKERS"; then
+    if ! update_config "${HOSTS[$i]}" "${PORTS[$i]}" "$QBT_USERNAME" "$QBT_PASSWORD" "$QBT_AUTH_BYPASS" "${TRACKERS[@]}"; then
       echo "[WARN] Failed to update config for ${HOSTS[$i]}:${PORTS[$i]}"
       continue
     fi
