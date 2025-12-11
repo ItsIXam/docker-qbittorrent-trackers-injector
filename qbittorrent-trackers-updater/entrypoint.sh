@@ -20,10 +20,13 @@ update_config() {
   local username="$3"
   local password="$4"
   local auth_bypass="$5"
+  local clean_existing_trackers="$6"
   local tracker_list=("$@")
 
   sed -i "s|^qbt_host=.*|qbt_host=\"$host\"|" /AddqBittorrentTrackers.sh
   sed -i "s|^qbt_port=.*|qbt_port=\"$port\"|" /AddqBittorrentTrackers.sh
+
+  sed -i "s|^clean_existing_trackers=.*|clean_existing_trackers=$clean_existing_trackers|" /AddqBittorrentTrackers.sh
 
   if [ "$auth_bypass" = "true" ]; then
     sed -i 's/^qbt_username=.*/qbt_username=""/' /AddqBittorrentTrackers.sh
@@ -89,6 +92,11 @@ if [[ -z "${TRACKER_LIST}" ]]; then
 fi
 IFS=',' read -r -a TRACKERS <<< "$TRACKER_LIST"
 
+if [[ -z "${CLEAN_EXISTING_TRACKERS}" ]]; then
+  echo "[INFO] No value for CLEAN_EXISTING_TRACKERS found, using default: false" >&2
+  CLEAN_EXISTING_TRACKERS=false
+fi
+
 # Run on a loop
 while true; do
   echo "[INFO] Updating qBittorrent trackers at $(date)"
@@ -107,7 +115,7 @@ while true; do
 
   for i in "${!HOSTS[@]}"; do
     echo "[INFO] Updating host ${HOSTS[$i]}:${PORTS[$i]}"
-    if ! update_config "${HOSTS[$i]}" "${PORTS[$i]}" "$QBT_USERNAME" "$QBT_PASSWORD" "$QBT_AUTH_BYPASS" "${TRACKERS[@]}"; then
+    if ! update_config "${HOSTS[$i]}" "${PORTS[$i]}" "$QBT_USERNAME" "$QBT_PASSWORD" "$QBT_AUTH_BYPASS" "$CLEAN_EXISTING_TRACKERS" "${TRACKERS[@]}"; then
       echo "[WARN] Failed to update config for ${HOSTS[$i]}:${PORTS[$i]}"
       continue
     fi
