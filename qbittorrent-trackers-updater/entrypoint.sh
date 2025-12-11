@@ -81,14 +81,16 @@ while true; do
   echo "[INFO] Updating qBittorrent trackers at $(date)"
 
   echo "[INFO] Fetching tracker list..."
-  TRACKER_LIST=$(
-    curl -s https://newtrackon.com/api/stable && echo &&
-    curl -s https://trackerslist.com/best.txt && echo &&
-    curl -s https://trackerslist.com/http.txt && echo &&
-    curl -s https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt
-  )
-  TRACKER_LIST=$(echo -e "$TRACKER_LIST" | sort -u)
-  echo "$TRACKER_LIST" > /trackers_list.txt
+  COMPLETE_TRACKER_LIST=""
+
+  IFS=',' read -r -a array <<< "$TRACKER_LIST"
+  for element in "${array[@]}"
+  do
+    COMPLETE_TRACKER_LIST+=$(curl -s "$element")
+  done
+
+  COMPLETE_TRACKER_LIST=$(echo -e "$COMPLETE_TRACKER_LIST" | sort -u)
+  echo "$COMPLETE_TRACKER_LIST" > /trackers_list.txt
   export TRACKER_LIST_FILE="/trackers_list.txt"
 
   if [[ "$DEBUG" == "true" ]]; then
@@ -108,7 +110,7 @@ while true; do
       echo "[WARN] Failed updating trackers for ${HOSTS[$i]}:${PORTS[$i]}"
     fi
 
-    update_add_trackers_setting "${HOSTS[$i]}" "${PORTS[$i]}" "$QBT_USERNAME" "$QBT_PASSWORD" "$QBT_AUTH_BYPASS" "$TRACKER_LIST"
+    update_add_trackers_setting "${HOSTS[$i]}" "${PORTS[$i]}" "$QBT_USERNAME" "$QBT_PASSWORD" "$QBT_AUTH_BYPASS" "$COMPLETE_TRACKER_LIST"
   done
 
   echo "[INFO] Sleeping for ${INTERVAL_SECONDS}s..."
