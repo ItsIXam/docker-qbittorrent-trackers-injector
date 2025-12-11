@@ -76,6 +76,12 @@ update_add_trackers_setting() {
 IFS="," read -r -a HOSTS <<< "$QBT_HOSTS"
 IFS="," read -r -a PORTS <<< "$QBT_PORTS"
 
+if [[ -n "$TRACKER_LIST" ]]; then
+  echo "[INFO] No custom trackers list detected, using default"
+  TRACKER_LIST=https://newtrackon.com/api/stable,https://trackerslist.com/best.txt,https://trackerslist.com/http.txt,https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt
+
+IFS=',' read -r -a TRACKERS <<< "$TRACKER_LIST"
+
 # Run on a loop
 while true; do
   echo "[INFO] Updating qBittorrent trackers at $(date)"
@@ -83,8 +89,7 @@ while true; do
   echo "[INFO] Fetching tracker list..."
   COMPLETE_TRACKER_LIST=""
 
-  IFS=',' read -r -a array <<< "$TRACKER_LIST"
-  for element in "${array[@]}"
+  for element in "${TRACKERS[@]}"
   do
     COMPLETE_TRACKER_LIST+=$(curl -s "$element")
   done
