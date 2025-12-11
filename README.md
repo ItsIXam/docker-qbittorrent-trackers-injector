@@ -85,6 +85,9 @@ UPDATE_DEFAULT_TRACKERS=true
 
 # Optional: enable debug logs
 DEBUG=true
+
+# optional: define a custom tracker_list url. Must be a url to a tracker list.
+TRACKER_LIST=https://newtrackon.com/api/stable,https://trackerslist.com/best.txt,https://trackerslist.com/http.txt,https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt
 ```
 
 > 🔁 The script loops through each qBittorrent instance and injects updated trackers.
